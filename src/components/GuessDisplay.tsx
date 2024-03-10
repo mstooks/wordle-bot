@@ -45,9 +45,15 @@ const GuessDisplay = ({ guess, feedback, onFeedbackUpdate, isCurrentGuess, locke
                         cursor: (!loading && isCurrentGuess && !lockedIndexes.includes(index)) ? 'pointer' : 'default',
                     }}
                 >
-                    <Typography variant="h5" component="span">
-                        {letter.toUpperCase()}
-                    </Typography>
+                <Typography
+                    variant="h5"
+                    component="span"
+                    sx={{
+                        userSelect: 'none', // Add this line
+                    }}
+                >
+                    {letter.toUpperCase()}
+                </Typography>
                 </Box>
             ))}
         </Box>
