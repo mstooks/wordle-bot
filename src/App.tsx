@@ -19,7 +19,7 @@ function App() {
     const [openModal, setOpenModal] = useState(false);
     const [userInteracted, setUserInteracted] = useState(false);
     const [showTappingGif, setShowTappingGif] = useState(false);
-
+    
     const interactionTimeoutRef = useRef<number>(0);
 
     const handleOpenModal = () => {
@@ -64,17 +64,24 @@ function App() {
         setLoading(true);
         if (guessHistory.length > 0) {
             const currentGuess = guessHistory[guessHistory.length - 1];
-            const filledFeedback = currentGuess.feedback.map(f => f || 'x');
-            const clue = filledFeedback.join('');
+            // Ensure that feedback for the current guess is complete and valid.
+            const feedbackIsComplete = currentGuess.feedback.every(f => ['g', 'y', 'x'].includes(f));
     
-            const requestPayload: WordleRequest = guessHistory.map(entry => ({
+            const requestPayload: WordleRequest = guessHistory.slice(0, -1).map(entry => ({
                 word: entry.guess,
-                clue: entry.feedback.join('') || 'xxxxx'
+                // Fill in missing feedback with 'x' and ensure each clue is 5 characters long
+                clue: entry.feedback.map(f => f || 'x').join('').padEnd(5, 'x')
             }));
     
-            // Add the current guess with its feedback to the request payload
-            requestPayload.push({ word: currentGuess.guess, clue });
+            // Only add the current guess to the request payload if the feedback is complete
+            if (feedbackIsComplete) {
+                const clue = currentGuess.feedback.join('');
+                requestPayload.push({ word: currentGuess.guess, clue });
+            }
     
+            console.log(requestPayload);
+    
+            const clue = currentGuess.feedback.join('');
             if (clue === "ggggg") {
                 enqueueSnackbar('🎉 Well done! We won the game!', { variant: 'success', autoHideDuration: 6500 });
                 setGameOver(true);
@@ -90,13 +97,16 @@ function App() {
     
             try {
                 const wordleResponse = await fetchWordleResult(requestPayload);
-                const newFeedback = wordleResponse.guess.split('').map((letter, index) => {
-                    if (currentGuess.guess[index] === letter && filledFeedback[index] === 'g') {
-                        return 'g';
-                    }
-                    return '';
-                });
-                setGuessHistory([...guessHistory, { guess: wordleResponse.guess, feedback: newFeedback }]);
+                if (wordleResponse.guess) {
+                    // Generate a new feedback array based on the response
+                    const newFeedback = Array.from({ length: 5 }, (_, i) =>
+                        wordleResponse.guess[i] === currentGuess.guess[i] ? 'g' : 'x'
+                    );
+                    // Update the guess history with the new feedback
+                    setGuessHistory(prev => [...prev, { guess: wordleResponse.guess, feedback: newFeedback }]);
+                } else {
+                    throw new Error("Invalid response from the server. No guess received.");
+                }
             } catch (error) {
                 const errorMessage = (error as Error).message;
 
@@ -104,8 +114,6 @@ function App() {
                     enqueueSnackbar('The requested items eliminates all the words in the dictionary (i.e. not solvable), please re-check your selections.', { variant: 'error' });
                 } else if (errorMessage.includes('Failed to fetch')) {
                     enqueueSnackbar('Failed to fetch the next guess (API may be down or there was an issue in the request)', { variant: 'error' });
-                } else if (errorMessage.includes('string property that is 5 characters long')) {
-                    enqueueSnackbar('Your response is somehow longer than 5 characters, no cheating!', { variant: 'error' });
                 } else if (errorMessage.includes('must have a valid state object as the HTTP body')) {
                     enqueueSnackbar('The request body is empty. Please provide a valid state object.', { variant: 'error' });
                 } else if (errorMessage.includes('state must be an array')) {
@@ -118,6 +126,10 @@ function App() {
                     enqueueSnackbar('The word field contains invalid characters. Please provide a valid 5-letter word using only alpha characters.', { variant: 'error' });
                 } else if (errorMessage.includes('clue string property with invalid characters')) {
                     enqueueSnackbar('The clue field contains invalid characters. Please provide a valid clue using only "g", "y", or "x" characters.', { variant: 'error' });
+                } else if (errorMessage.includes("does not have a 'clue' string property that is 5 characters long")) {
+                    enqueueSnackbar('The clue field contains less than 5 characters, something is broken here, reload the page and try again.', { variant: 'error' });
+                } else if (errorMessage.includes('string property that is 5 characters long')) {
+                    enqueueSnackbar('Your response is somehow longer than 5 characters, no cheating!', { variant: 'error' });
                 } else {
                     console.error('An unexpected error occurred:', error);
                 }
@@ -151,7 +163,7 @@ function App() {
         updatedHistory[updatedHistory.length - 1].feedback = filledFeedback;
         setGuessHistory(updatedHistory);
     };
-    
+        
     
     const lockedIndexes = guessHistory.reduce((acc, curr, index) => {
         //This keeps already known/correct characters from being edited 

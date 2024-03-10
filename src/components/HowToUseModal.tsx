@@ -37,13 +37,15 @@ const HowToUseModal = ({ open, onClose }: { open: boolean, onClose: () => void }
                     How to Use
                 </Typography>
                 <Typography id="modal-description" sx={{ mt: 2 }}>
-                    1. Wait for the initial guess to load.<br />
+                    1. Open Wordle on another tab/window.<br />
                     <br></br>
-                    2. Click on the letters to cycle through their statuses until it matches your wordle screen.<br />
+                    2. Once the initial guess has been loaded here, enter the word into your wordle game on the other tab.<br />
                     <br></br>
-                    3. Once you've set the statuses for all letters, click "Submit Status" to get the next guess.<br />
+                    3. Click on the letters to cycle through their statuses until it matches your wordle screen.<br />
                     <br></br>
-                    4. Repeat steps 2 and 3 until you find the correct word or run out of guesses.<br />
+                    4. Once you've set the statuses for all letters, click "Submit Status" to get the next guess.<br />
+                    <br></br>
+                    5. Repeat steps 2 and 3 until you find the correct word or run out of guesses.<br />
                 </Typography>
             </Box>
         </Modal>
