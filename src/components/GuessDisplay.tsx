@@ -55,10 +55,11 @@ const GuessDisplay = ({
           }}
         >
           <Typography
-            variant="h5"
+            variant="h3"
             component="span"
             sx={{
               userSelect: 'none',
+              fontWeight: 'bold',
             }}
           >
             {letter.toUpperCase()}
