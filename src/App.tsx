@@ -75,9 +75,6 @@ function App() {
             // Add the current guess with its feedback to the request payload
             requestPayload.push({ word: currentGuess.guess, clue });
     
-            // Log the request payload for debugging
-            console.log('Request payload:', requestPayload);
-    
             if (clue === "ggggg") {
                 enqueueSnackbar('🎉 Well done! We won the game!', { variant: 'success', autoHideDuration: 6500 });
                 setGameOver(true);
