@@ -5,10 +5,10 @@ import Layout from './components/Layout';
 import Header from './components/Header';
 import GuessDisplay from './components/GuessDisplay';
 import { fetchWordleResult, WordleRequest } from './api/api';
-import './index.css';
-import tappingGif from './assets/tapping.gif';
 import FeedbackForm from './components/FeedbackForm';
 import HowToUseModal from './components/HowToUseModal';
+import GameOverMessage from './components/GameOverMessage';
+import TappingFinger from './components/TappingFInger';
 
 function App() {
     const { enqueueSnackbar } = useSnackbar();
@@ -38,7 +38,7 @@ function App() {
             if (!userInteracted) {
                 setShowTappingGif(true);
             }
-        }, 6000) as unknown as number;
+        }, 5000) as unknown as number;
         
     
         // Clear the timeout when the component unmounts or the game restarts
@@ -202,29 +202,11 @@ function App() {
                             lockedIndexes={index === guessHistory.length - 1 ? Array.from(lockedIndexes) as number[] : []}
                             loading={loading}
                         />
-                    {!userInteracted && showTappingGif && index === guessHistory.length - 1 && (
-                        <Box
-                            component="img"
-                            src={tappingGif}
-                            alt="Tap here"
-                            className="fade-in-out"
-                            sx={{
-                                position: 'absolute',
-                                top: 'calc(50% + 23px)',
-                                left: '52.5%',
-                                transform: 'translate(-50%, -50%)',
-                                width: '2.25rem',
-                                height: '2.25rem',
-                                pointerEvents: 'none',
-                            }}
-                        />
-                    )}
+                    {!userInteracted && showTappingGif && index === guessHistory.length - 1 && <TappingFinger />}
                     </Box>
                 ))}
                 {gameOver && (
-                    <Typography variant="h5" color="secondary" align="center" marginTop={2}>
-                        Game Over, { gameWon ? "We Won! 🎉" : "We Lost 😢"}
-                    </Typography>
+                    <GameOverMessage gameWon={gameWon} onRestart={restartGame} />
                 )}
                 {guessHistory.length > 0 && !gameOver && (
                     <FeedbackForm
@@ -233,21 +215,10 @@ function App() {
                         onSubmitFeedback={handleFeedbackSubmit}
                     />
                 )}
-                {gameOver && (
-                    <Box display="flex" justifyContent="center" my={2}>
-                        <Button
-                            variant="contained"
-                            color="secondary"
-                            onClick={restartGame}
-                        >
-                            Play Again
-                        </Button>
-                    </Box>
-                )}
                 <HowToUseModal open={openModal} onClose={handleCloseModal} />
             </Container>
         </Layout>
-    );
+    );    
 }
 
 export default function WrappedApp() {
