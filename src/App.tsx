@@ -66,21 +66,31 @@ function App() {
             const currentGuess = guessHistory[guessHistory.length - 1];
             const filledFeedback = currentGuess.feedback.map(f => f || 'x');
             const clue = filledFeedback.join('');
-            const requestPayload: WordleRequest = [{ word: currentGuess.guess, clue: clue }];
-
+    
+            const requestPayload: WordleRequest = guessHistory.map(entry => ({
+                word: entry.guess,
+                clue: entry.feedback.join('') || 'xxxxx'
+            }));
+    
+            // Add the current guess with its feedback to the request payload
+            requestPayload.push({ word: currentGuess.guess, clue });
+    
+            // Log the request payload for debugging
+            console.log('Request payload:', requestPayload);
+    
             if (clue === "ggggg") {
                 enqueueSnackbar('🎉 Well done! We won the game!', { variant: 'success', autoHideDuration: 6500 });
                 setGameOver(true);
                 setGameWon(true);
                 return;
             }
-
+    
             if (guessHistory.length >= 6 && clue !== "ggggg") {
                 enqueueSnackbar('We lost the game 😭 Better Luck next time!', { variant: 'warning', autoHideDuration: 6500 });
                 setGameOver(true);
                 return;
             }
-
+    
             try {
                 const wordleResponse = await fetchWordleResult(requestPayload);
                 const newFeedback = wordleResponse.guess.split('').map((letter, index) => {
@@ -137,11 +147,15 @@ function App() {
         setShowTappingGif(false);
         clearTimeout(interactionTimeoutRef.current);
         const updatedHistory = [...guessHistory];
-        updatedHistory[updatedHistory.length - 1].feedback[index] = feedback;
+        const currentFeedback = updatedHistory[updatedHistory.length - 1].feedback;
+        currentFeedback[index] = feedback;
+        // Ensure the feedback is always 5 characters long by filling in 'x' for empty slots
+        const filledFeedback = currentFeedback.map(f => f || 'x');
+        updatedHistory[updatedHistory.length - 1].feedback = filledFeedback;
         setGuessHistory(updatedHistory);
     };
     
-
+    
     const lockedIndexes = guessHistory.reduce((acc, curr, index) => {
         //This keeps already known/correct characters from being edited 
         if (index < guessHistory.length - 1) {
